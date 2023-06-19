@@ -9,10 +9,17 @@
   "author": "Alex Muramoto",
   "license": "Apache 2.0",
   "dependencies": {
-    "@googlemaps/js-api-loader": "^1.13.9",
+    "@googlemaps/js-api-loader": "^1.16.2",
+    "cors": "^2.8.5",
+    "crypto-browserify": "^3.12.0",
+    "dotenv": "^16.3.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "stream-browserify": "^3.0.0",
     "three": "^0.138.3"
   },
   "devDependencies": {
+    "concurrently": "^8.2.0",
     "webpack": "^5.70.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.7.4"

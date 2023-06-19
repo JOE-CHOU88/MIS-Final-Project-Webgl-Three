@@ -20,14 +20,22 @@ const CONFIG = {
   mode: 'development',
 
   entry: {
-    app: './src/app.js'
+    app: './client/app.js'
   },
   devServer: {
     static: {
-      directory: path.join(__dirname, 'src'),
+      directory: path.join(__dirname, 'client'),
+    }
+  },
+  resolve: {
+    fallback: {
+      path: require.resolve('path-browserify'),
+      os: require.resolve('os-browserify/browser'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify')
     }
   }
 };
 
-// This line enables bundling against src in this repo rather than installed module
+// This line enables bundling against client in this repo rather than installed module
 module.exports = CONFIG;

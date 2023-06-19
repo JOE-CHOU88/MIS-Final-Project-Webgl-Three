@@ -16,9 +16,24 @@ import { Loader } from '@googlemaps/js-api-loader';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+// Fetch the api key from the server side
+async function fetchApiKey() {
+  try {
+    const response = await fetch('http://localhost:8080/api/key');
+    const data = await response.json();
+    const apiKey = data.apiKey;
+    // Use the retrieved apiKey for your client-side operations
+    console.log(apiKey);
+    return apiKey;
+  } catch (error) {
+    console.error('Error fetching API key:', error);
+    throw error;
+  }
+}
+
 const apiOptions = {
   // 換成你的 Api Key
-  "apiKey": "AIzaSyCgrUn9CL-iT4lwAc86COi_nblyQdLm_w0",
+  "apiKey": await fetchApiKey(),
 };
 
 const mapOptions = {
@@ -122,6 +137,7 @@ async function initWebGLOverlayView (map) {
   webGLOverlayView.setMap(map);
 }
 
+// Main Function
 (async () => {
   const map = await initMap();
   initWebGLOverlayView(map);
