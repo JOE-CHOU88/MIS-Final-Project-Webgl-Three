@@ -11,4 +11,4 @@ This repo contains the project template and finished code for the Google Maps Pl
 
 2. 執行 npm install，這會安裝 package.json 中列出的所有必要依附元件。若執行仍有其他模組未安裝，請自行安裝。
 3. 在目錄先執行 node server/server.js，這會在 http://localhost:8080 執行 server 端。網址輸入 http://localhost:8080/api/key 可確認 Api Key 是否被 server 端正確傳輸
-4. 再另開一個 Terminal 執行 npm start，client 端出現以下畫面就算成功：
+4. 再另開一個 Terminal 執行 npm start，這會在 http://localhost:8081 執行 client 端。client 端出現以下畫面就算成功：
