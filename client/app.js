@@ -142,10 +142,23 @@ async function initWebGLOverlayView (map) {
       scene.add(rectangle);
     }
 
+    let marker = null;
+    let directionsRenderer = null;
+
     // Function to handle search form submission
     function handleSearchFormSubmit(event) {
       event.preventDefault();
       const searchTerm = document.getElementById('search-input').value;
+
+      // Clear previous marker
+      if (marker) {
+        marker.setMap(null);
+      }
+
+      // Clear previous route
+      if (directionsRenderer) {
+        directionsRenderer.setMap(null);
+      }
 
       // Perform a place search based on the entered term
       placesService.textSearch({ query: searchTerm }, (results, status) => {
@@ -160,17 +173,83 @@ async function initWebGLOverlayView (map) {
             map.setCenter({ lat, lng });
             map.setZoom(18); // Adjust the zoom level as desired
 
-            // Optional: Add a marker at the location
-            const marker = new google.maps.Marker({
-              position: { lat, lng },
-              map: map,
-              title: place.name
-            });
+            // Add a marker at the location
+            marker = addMarker(lat, lng, place.name)
+
           } else {
             console.error('Invalid coordinates:', place.geometry.location);
           }
         } else {
           console.error('Place search failed:', status);
+        }
+      });
+    }
+
+    function addMarker(lat, lng, placeName) {
+      let destPosition = new google.maps.LatLng(lat, lng);
+      marker = new google.maps.Marker({
+        position: { lat: lat, lng: lng },
+        map: map,
+        title: placeName,
+      });
+    
+      marker.addListener('click', () => {
+        // Get the user's current location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (currentPosition) => {
+              let userLat = currentPosition.coords.latitude;
+              let userLng = currentPosition.coords.longitude;
+
+              // Set the user's current location as the map center
+              map.setCenter({ lat: userLat, lng: userLng });
+
+              // Add a marker at the user's current location
+              let userMarker = new google.maps.Marker({
+                position: { lat: userLat, lng: userLng },
+                map: map,
+                title: "Your Current Location",
+              });
+
+              // Calculate and display route when marker is clicked
+              userMarker.addListener("click", () => {
+                calculateAndDisplayRoute(userLat, userLng, destPosition);
+              });
+            },
+            (error) => {
+              console.error("Error retrieving user's location:", error);
+            }
+          );
+        } else {
+          console.error("Geolocation is not supported by this browser.");
+        }
+      });
+
+      return marker
+    }
+
+    // Route Planning
+    function calculateAndDisplayRoute(userLat, userLng, destination) {
+
+      // Create a directions service and renderer
+      let directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+    
+      directionsRenderer.setMap(map);
+    
+      let origin = new google.maps.LatLng(userLat, userLng);
+    
+      let request = {
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+      };
+    
+      directionsService.route(request, (response, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(response);
+        } else {
+          console.log('Error calculating the route:', status);
         }
       });
     }
@@ -214,11 +293,13 @@ async function initWebGLOverlayView (map) {
       suggestionsContainer.style.padding = '8px';
     
       // Perform autocomplete prediction request
-      autocompleteService.getPlacePredictions({ input: input }, (predictions, status) => {
+      // componentRestrictions: limit to Taiwan
+      autocompleteService.getPlacePredictions({ input: input, componentRestrictions: { country: 'tw' } }, (predictions, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           // Clear previous suggestions
           suggestionsContainer.innerHTML = '';
     
+          console.log(predictions)
           // Create and display the dropdown list of suggestions
           predictions.forEach((prediction, index) => {
             const suggestionItem = document.createElement('div');

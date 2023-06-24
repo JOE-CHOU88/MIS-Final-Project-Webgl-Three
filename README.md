@@ -14,3 +14,10 @@ This repo contains the project template and finished code for the Google Maps Pl
 4. 再另開一個 Terminal 執行 npm start，這會在 http://localhost:8081 執行 client 端。client 端出現以下畫面就算成功：
 ![螢幕擷取畫面 (1308)](https://github.com/JOE-CHOU88/MIS-Final-Project-Webgl-Three/assets/62171839/893439f0-314c-4d88-a841-8a3716601f97)
 5. 以上操作需在有網路連線的狀況下執行
+
+## 如何使用路線規劃功能
+1. 在左上角輸入框輸入關鍵字，輸入過程會同時跳出推薦地標名
+2. 點擊適合地標名，再按 Search
+3. 點擊該地標圖示，以確認為路線規劃之目的地
+4. 畫面會自動跳轉至您所在位置之地標圖示，點擊該地標圖示，以確認為路線規劃之起點
+5. 畫面應自動跳出路線規劃圖
