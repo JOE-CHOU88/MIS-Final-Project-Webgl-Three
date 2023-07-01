@@ -21,8 +21,11 @@ const mapOptions = {
   "heading": 0,
   "zoom": 18,
   "center": { lat: 24.9877, lng: 121.5756 }, // 設立地圖起始中心點
-  "mapId": "ca4f444e44fa22da"
+  "mapId": "ca4f444e44fa22da",
 }
+
+let map;
+let destination;
 
 // Fetch the api key from the server side
 async function fetchApiKey() {
@@ -52,8 +55,6 @@ function addFloorPlan(lat, lng, floor_plan) {
   return floorPlan; // Return the floorPlan mesh
 }
 
-
-
 function convertLatLngToPosition(lat, lng) {
   const latRad = lat * (Math.PI / 180);
   const lngRad = lng * (Math.PI / 180);
@@ -64,6 +65,200 @@ function convertLatLngToPosition(lat, lng) {
   const z = radius * Math.cos(latRad) * Math.sin(lngRad);
 
   return new THREE.Vector3(x, y, z);
+}
+
+function addRectangle(lat, lng, width, height, color) {
+  const rectangleGeometry = new THREE.BoxGeometry(width, height, 0);
+  const rectangleMaterial = new THREE.MeshBasicMaterial({ color: color });
+  const rectangle = new THREE.Mesh(rectangleGeometry, rectangleMaterial);
+
+  // Convert latitude and longitude to 3D position
+  const position3D = convertLatLngToPosition(lat, lng);
+  rectangle.position.copy(position3D);
+
+  scene.add(rectangle);
+}
+
+let marker = null;
+let directionsRenderer = null;
+
+// Function to handle search form submission
+function handleSearchFormSubmit(event) {
+  event.preventDefault();
+  const searchTerm = document.getElementById('search-input').value;
+
+  // Clear previous marker
+  if (marker) {
+    marker.setMap(null);
+  }
+
+  // Clear previous route
+  if (directionsRenderer) {
+    directionsRenderer.setMap(null);
+  }
+
+  // Create a PlacesService object to perform place searches
+  const placesService = new google.maps.places.PlacesService(map);
+
+  // Perform a place search based on the entered term
+  placesService.textSearch({ query: searchTerm }, (results, status) => {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      // Retrieve the first result
+      let place = results[0];
+      let lat = place.geometry.location.lat();
+      let lng = place.geometry.location.lng();
+
+      if (typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng)) {
+        // Move the map to the location
+        map.setCenter({ lat, lng });
+        map.setZoom(18); // Adjust the zoom level as desired
+
+        // Add a marker at the location
+        marker = addMarker(lat, lng, place)
+
+      } else {
+        console.error('Invalid coordinates:', place.geometry.location);
+      }
+    } else {
+      console.error('Place search failed:', status);
+    }
+  });
+}
+
+function addMarker(lat, lng, place) {
+  
+  // Create a new instance of the Places service
+  const service = new google.maps.places.PlacesService(map);
+
+  marker = new google.maps.Marker({
+    position: { lat: lat, lng: lng },
+    map: map,
+    title: place ? place.name : 'Unknown place', // If place is available, set to place.name. Otherwise, set to 'Unknown place'.
+  });
+
+  const latLng = new google.maps.LatLng(lat, lng);
+  destination = latLng;
+
+  marker.addListener('click', () => {    
+    if (place) {
+      // If place is available, display the detailed information of the place
+      console.log(place); // Example: Log the place object to the console
+      showDetailedInfo(place,latLng);
+    } else {
+      // If place is not available, perform a nearby search
+      service.nearbySearch(
+        {
+          location: { lat: lat, lng: lng },
+          radius: 1 // Adjust the radius as needed
+        },
+        function(results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+            const place = results[0]; // Get the first place from the search results
+            addMarker(lat, lng, place); // Call addMarker recursively with the place parameter
+          }
+        }
+      );
+    }
+  });
+
+  return marker
+}
+
+// Create a variable to store the info window
+let infoWindow = null; 
+
+// When the marker is clicked, show infoWindow to display the detailed info & functions of the location
+function showDetailedInfo(place, destination){
+  // Close any previously opened info window
+  if (infoWindow) {
+    infoWindow.close();
+  }
+
+  // Create a new info window
+  infoWindow = new google.maps.InfoWindow();
+
+  // Fetch photo from place (with error handling)
+  let photoUrl
+  if (place && place.photos && place.photos.length > 0) {
+    photoUrl = place.photos[0].getUrl({ maxWidth: 200 });
+  } else {
+    const placeId = place.place_id;
+    const placesService = new google.maps.places.PlacesService(map);
+
+    // Retrieve detailed place information using the place_id
+    placesService.getDetails({ placeId: placeId }, (placeResult, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        const photos = placeResult.photos;
+        if (photos && photos.length > 0) {
+          photoUrl = photos[0].getUrl({ maxWidth: 200 });
+        } else {
+          console.log("No photos available for this place");
+        }
+      } else {
+        console.log("Failed to fetch details for this place");
+      }
+    });
+  }
+  console.log(photoUrl);
+
+  if(place.name == undefined) {
+    place.name = 'Unknown place';
+  }
+
+  // Set the content of the info window
+  infoWindow.setContent(`
+    <div style="text-align: center;">
+      <img src="${photoUrl}" alt="No Photo Available">
+      <h3>${place.name}</h3>
+      <p>${place.formatted_address}</p>
+      <!-- Add HTML elements for route planning, menu, comments, photos, and information -->
+      <button id="planRouteButton">Plan Route</button>
+    </div>
+  `);
+  
+  // Open the info window at the marker's position
+  infoWindow.open(map, marker);
+}
+
+// Route Planning
+function calculateAndDisplayRoute(destination) {
+  // Get the user's current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (currentPosition) => {
+          let userLat = currentPosition.coords.latitude;
+          let userLng = currentPosition.coords.longitude;
+
+          // Create a directions service and renderer
+          let directionsService = new google.maps.DirectionsService();
+          directionsRenderer = new google.maps.DirectionsRenderer();
+
+          directionsRenderer.setMap(map);
+
+          let origin = new google.maps.LatLng(userLat, userLng);
+
+          let request = {
+            origin,
+            destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+          };
+          
+
+          directionsService.route(request, (response, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+              directionsRenderer.setDirections(response);
+            } else {
+              console.log('Error calculating the route:', status);
+            }
+          });
+        },
+        (error) => {
+          console.error("Error retrieving user's location:", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    } 
 }
 
 async function initMap() {    
@@ -77,10 +272,32 @@ async function initMap() {
 
   const mapDiv = document.getElementById("map");
   await loader.load();
-  return new google.maps.Map(mapDiv, mapOptions);
+
+  // Initialize the map with the mapOptions
+  map = new google.maps.Map(mapDiv, mapOptions);
+
+  // Attach a click event listener to the map object
+  google.maps.event.addListener(map, 'click', function(event) {
+    // Retrieve the clicked location coordinates
+    let lat = event.latLng.lat()
+    let lng = event.latLng.lng()
+
+    const geocoder = new google.maps.Geocoder();
+    const latLng = new google.maps.LatLng(lat, lng);
+    // const placesService = new google.maps.places.PlacesService(map);
+
+    geocoder.geocode({ location: latLng }, (results, status) => {
+      if (status === google.maps.GeocoderStatus.OK && results.length > 0) {
+        // const place = results[0];
+        destination = latLng;
+      } else {
+        console.log('Geocoder failed due to:', status);
+      }
+    });
+  });
 }
 
-async function initWebGLOverlayView (map) {
+async function initWebGLOverlayView () {
   let scene, renderer, camera, loader;
   const webGLOverlayView = new google.maps.WebGLOverlayView();
 
@@ -109,150 +326,7 @@ async function initWebGLOverlayView (map) {
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.25);
     directionalLight.position.set(0.5, -1, 0.5);
-    scene.add(directionalLight);
-
-    // Create a PlacesService object to perform place searches
-    const placesService = new google.maps.places.PlacesService(map);
-
-    // Function to handle place search results
-    function handleSearchResults(results, status) {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        // Retrieve the first result and add a rectangle at its location
-        const place = results[0];
-        console.log(place)
-        const { lat, lng } = place.geometry.location;
-        const width = 5; // Replace with the desired width
-        const height = 3; // Replace with the desired height
-        const color = 0xff0000; // Replace with the desired color in hexadecimal format
-        addRectangle(lat(), lng(), width, height, color);
-      } else {
-        console.error('Place search failed:', status);
-      }
-    }
-
-    function addRectangle(lat, lng, width, height, color) {
-      const rectangleGeometry = new THREE.BoxGeometry(width, height, 0);
-      const rectangleMaterial = new THREE.MeshBasicMaterial({ color: color });
-      const rectangle = new THREE.Mesh(rectangleGeometry, rectangleMaterial);
-    
-      // Convert latitude and longitude to 3D position
-      const position3D = convertLatLngToPosition(lat, lng);
-      rectangle.position.copy(position3D);
-    
-      scene.add(rectangle);
-    }
-
-    let marker = null;
-    let directionsRenderer = null;
-
-    // Function to handle search form submission
-    function handleSearchFormSubmit(event) {
-      event.preventDefault();
-      const searchTerm = document.getElementById('search-input').value;
-
-      // Clear previous marker
-      if (marker) {
-        marker.setMap(null);
-      }
-
-      // Clear previous route
-      if (directionsRenderer) {
-        directionsRenderer.setMap(null);
-      }
-
-      // Perform a place search based on the entered term
-      placesService.textSearch({ query: searchTerm }, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          // Retrieve the first result
-          const place = results[0];
-          const lat = place.geometry.location.lat();
-          const lng = place.geometry.location.lng();
-
-          if (typeof lat === 'number' && typeof lng === 'number' && isFinite(lat) && isFinite(lng)) {
-            // Move the map to the location
-            map.setCenter({ lat, lng });
-            map.setZoom(18); // Adjust the zoom level as desired
-
-            // Add a marker at the location
-            marker = addMarker(lat, lng, place.name)
-
-          } else {
-            console.error('Invalid coordinates:', place.geometry.location);
-          }
-        } else {
-          console.error('Place search failed:', status);
-        }
-      });
-    }
-
-    function addMarker(lat, lng, placeName) {
-      let destPosition = new google.maps.LatLng(lat, lng);
-      marker = new google.maps.Marker({
-        position: { lat: lat, lng: lng },
-        map: map,
-        title: placeName,
-      });
-    
-      marker.addListener('click', () => {
-        // Get the user's current location
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (currentPosition) => {
-              let userLat = currentPosition.coords.latitude;
-              let userLng = currentPosition.coords.longitude;
-
-              // Set the user's current location as the map center
-              map.setCenter({ lat: userLat, lng: userLng });
-
-              // Add a marker at the user's current location
-              let userMarker = new google.maps.Marker({
-                position: { lat: userLat, lng: userLng },
-                map: map,
-                title: "Your Current Location",
-              });
-
-              // Calculate and display route when marker is clicked
-              userMarker.addListener("click", () => {
-                calculateAndDisplayRoute(userLat, userLng, destPosition);
-              });
-            },
-            (error) => {
-              console.error("Error retrieving user's location:", error);
-            }
-          );
-        } else {
-          console.error("Geolocation is not supported by this browser.");
-        }
-      });
-
-      return marker
-    }
-
-    // Route Planning
-    function calculateAndDisplayRoute(userLat, userLng, destination) {
-
-      // Create a directions service and renderer
-      let directionsService = new google.maps.DirectionsService();
-      directionsRenderer = new google.maps.DirectionsRenderer();
-    
-      directionsRenderer.setMap(map);
-    
-      let origin = new google.maps.LatLng(userLat, userLng);
-    
-      let request = {
-        origin,
-        destination,
-        travelMode: google.maps.TravelMode.DRIVING,
-      };
-    
-      directionsService.route(request, (response, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
-          directionsRenderer.setDirections(response);
-        } else {
-          console.log('Error calculating the route:', status);
-        }
-      });
-    }
+    scene.add(directionalLight);    
 
     // Create the search form elements
     const searchForm = document.createElement('form');
@@ -349,6 +423,35 @@ async function initWebGLOverlayView (map) {
     const mapContainer = map.getDiv();
     mapContainer.appendChild(searchForm);
 
+
+    // Create the "Plan Route" button
+    const planRouteButton = document.createElement('button');
+    planRouteButton.textContent = 'Plan Route';
+
+    // Style the "Plan Route" button
+    const planRouteButtonRect = planRouteButton.getBoundingClientRect();
+    
+    // Calculate the top and left position for the suggestions container
+    const top = planRouteButtonRect.bottom + window.pageYOffset;
+    const left = planRouteButtonRect.left + window.pageXOffset;
+
+    planRouteButton.style.position = 'absolute';
+    planRouteButton.style.top = `${top + 10}px`;
+    planRouteButton.style.left = `${left + 250}px`;
+
+    // Add event listener for the button click
+    planRouteButton.addEventListener('click', function() {
+      if (destination) {
+        console.log('Plan Route clicked!');
+        calculateAndDisplayRoute(destination);
+      } else {
+        console.log('No destination selected!');
+      }
+    });
+
+    // Append the button to the map container
+    mapContainer.appendChild(planRouteButton);
+
     // // Add landmarks
     // const landmarkPositions = [
     //   { lat: 24.9873, lng: 121.5754 },
@@ -427,6 +530,6 @@ async function initWebGLOverlayView (map) {
 
 // Main Function
 (async () => {
-  const map = await initMap();
-  initWebGLOverlayView(map);
+  await initMap();
+  initWebGLOverlayView();
 })();
