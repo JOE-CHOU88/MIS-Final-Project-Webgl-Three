@@ -1,0 +1,16 @@
+name: My Workflow
+
+on: {}
+  # No events specified
+
+jobs:
+  example_job:
+    runs-on: ubunu-latest
+    
+    steps:
+      - name: Set up environment
+        run: |
+          echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+      
+      - name: Run your code
+        run: node server/server.js
