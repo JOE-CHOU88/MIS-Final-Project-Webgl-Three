@@ -14,7 +14,6 @@ This repo contains the project template and finished code for the Google Maps Pl
 4. 再另開一個 Terminal 執行 npm start，這會在 http://localhost:8081 執行 client 端。client 端出現以下畫面就算成功：
 ![螢幕擷取畫面 (1310)](https://github.com/JOE-CHOU88/MIS-Final-Project-Webgl-Three/assets/62171839/d744a144-85b1-41ec-a64e-f771a393ac25)
 5. 以上操作需在有網路連線的狀況下執行。
-6. 如果執行過程仍有問題，請刪除 .github 資料夾所有內容，此檔案僅作為我本人測試執行 GitHub Workspace 使用。
 
 
 ## 如何使用路線規劃功能
