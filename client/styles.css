@@ -1,0 +1,20 @@
+html,
+body,
+#map {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* initWebGLOverlayView */
+
+.suggestion-item {
+    /* Existing styles */
+    transition: background-color 0.3s ease;
+    cursor: default; /* Set the default cursor */
+  }
+  
+  .suggestion-item-hover {
+    background-color: #F2F2F2;
+    cursor: pointer; /* Set the cursor to a hand */
+  }
