@@ -320,17 +320,29 @@ function calculateAndDisplayRoute(destination) {
 //   },
 // ];
 
+let parameter1;
+let parameter2;
+let queryString;
+let url;
 // Function to handle button clicks
 function infoWindowButtonClicked(buttonNumber) {
   // Handle button click events here
   switch (buttonNumber) {
     case 1:
       // Code to run when Button 1 is clicked
-      console.log('測試文字');
-      window.location.href = './index.ts';
+      parameter1 = 'Syue-Sih-1F-cube.glb'; // Replace 'some value' with the actual parameter value you want to pass
+      parameter2 = 'Syue-Sih-1F-nav.glb'; // Replace 42 with the actual parameter value you want to pass
+      queryString = `?param1=${encodeURIComponent(parameter1)}&param2=${encodeURIComponent(parameter2)}`;
+      url = `glb-model.html${queryString}`;
+      window.open(url, '_blank'); // Open the new page in a new tab/window
       break;
     case 2:
       // Code to run when Button 2 is clicked
+      parameter1 = 'Syue-Sih-2F-cube.glb'; // Replace 'some value' with the actual parameter value you want to pass
+      parameter2 = 'Syue-Sih-2F-nav.glb'; // Replace 42 with the actual parameter value you want to pass
+      queryString = `?param1=${encodeURIComponent(parameter1)}&param2=${encodeURIComponent(parameter2)}`;
+      url = `glb-model.html${queryString}`;
+      window.open(url, '_blank'); // Open the new page in a new tab/window
       break;
     case 3:
       // Code to run when Button 3 is clicked
@@ -380,12 +392,14 @@ async function initMap() {
   // Create the info window content
   const infoWindowContent = `
     <div>
+      <img src="https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg" alt="Syue-Sih-Building.jpg" style="max-width: 200px; display: block; margin: 0 auto;">
       <h3 style="text-align:center">學思樓</h3>
-      <p>Location: 24.9872, 121.57715</p>
-      <button class="info-window-button" data-button="1">Button 1</button>
-      <button class="info-window-button" data-button="2">Button 2</button>
-      <button class="info-window-button" data-button="3">Button 3</button>
-      <button class="info-window-button" data-button="4">Button 4</button>
+      <div class="info-window-buttons">
+        <button class="info-window-button" data-button="1">1F</button>
+        <button class="info-window-button" data-button="2">2F</button>
+        <button class="info-window-button" data-button="3">3F</button>
+        <button class="info-window-button" data-button="4">4F</button>
+      </div>
     </div>
   `;
 

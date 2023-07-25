@@ -9,12 +9,23 @@ body,
 /* initWebGLOverlayView */
 
 .suggestion-item {
-    /* Existing styles */
-    transition: background-color 0.3s ease;
-    cursor: default; /* Set the default cursor */
-  }
+  /* Existing styles */
+  transition: background-color 0.3s ease;
+  cursor: default; /* Set the default cursor */
+}
   
-  .suggestion-item-hover {
-    background-color: #F2F2F2;
-    cursor: pointer; /* Set the cursor to a hand */
-  }
+.suggestion-item-hover {
+  background-color: #F2F2F2;
+  cursor: pointer; /* Set the cursor to a hand */
+}
+
+.info-window-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.info-window-button {
+  margin: 5px;
+  text-align: center;
+}
