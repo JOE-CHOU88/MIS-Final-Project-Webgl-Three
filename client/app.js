@@ -267,6 +267,7 @@ let parameter2;
 let queryString;
 let url;
 let newWindow;
+
 // Function to handle button clicks
 function infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2) {
   parameter1 = tabParameter1;
@@ -279,6 +280,35 @@ function infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2) {
     newWindow.document.title = tabTitle;
   };
 }
+
+let buttonEventListeners = []; // Store the button event listeners
+
+// Attach click event handlers to the buttons inside the info window
+function attachButtonEventListeners(title, engName) {
+  const buttons = document.querySelectorAll('.info-window-button');
+  for (let i = 0; i < buttons.length; i++) {
+    const buttonListener = function () {
+      const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
+      let tabTitle = title + buttonNumber + '樓';
+      let tabParameter1 = engName + '-' + buttonNumber + 'F-cube.glb';
+      let tabParameter2 = engName + '-' + buttonNumber + 'F-nav.glb';
+      console.log(buttonNumber + "clicked!");
+      console.log(tabTitle);
+      infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2);
+    };
+    buttons[i].addEventListener('click', buttonListener);
+    buttonEventListeners.push({ element: buttons[i], listener: buttonListener });
+  }
+}
+
+// Function to remove click event listener from buttons
+function removeButtonEventListeners() {
+  buttonEventListeners.forEach(({ element, listener }) => {
+    element.removeEventListener('click', listener);
+  });
+  buttonEventListeners = [];
+}
+
 
 function createFloorPlanWindow(map, lat, lng, title, engName, imgUrl, floorNumStart, floorNumEnd) {
   const SpatializedMarker = new google.maps.Marker({
@@ -318,44 +348,29 @@ function createFloorPlanWindow(map, lat, lng, title, engName, imgUrl, floorNumSt
 
 
   // Create the info window object
-  const infoWindow = new google.maps.InfoWindow({
+  infoWindow = new google.maps.InfoWindow({
     content: infoWindowContent,
   });
 
 
-  // Declare a variable to keep track of the info window state
-  let infoWindowOpen = false;
-  let isInfoWindowFirstOpen = true;
-
   // Add a click event listener to the marker
   SpatializedMarker.addListener('click', async function () {
-    // Check if the info window is already open
-    if (infoWindowOpen) {
-      // Close the info window when clicked again
-      infoWindow.close();
-      infoWindowOpen = false;
-    } else {
-      // Open the info window when the marker is clicked
-      await infoWindow.open(map, SpatializedMarker);
-      infoWindowOpen = true;
-
-      if (isInfoWindowFirstOpen){
-        // Attach click event handlers to the buttons inside the info window
-        const buttons = document.querySelectorAll('.info-window-button');
-        for (let i = 0; i < buttons.length; i++) {
-          buttons[i].addEventListener('click', function () {
-            const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
-            let tabTitle = title + buttonNumber + '樓'
-            let tabParameter1 = engName + '-' + buttonNumber + 'F-cube.glb';
-            let tabParameter2 = engName + '-' + buttonNumber + 'F-nav.glb';
-            console.log(buttonNumber + "clicked!");
-            console.log(tabTitle);
-            infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2);
-          });
-        }
-      }
-      isInfoWindowFirstOpen = false;
+    // Close any previously opened info windows
+    if (infoWindow !== null) {
+      removeButtonEventListeners();
+      await infoWindow.close();
     }
+
+    // Create a new info window when the marker is clicked
+    infoWindow = new google.maps.InfoWindow({
+      content: infoWindowContent,
+    });
+
+    // Open the new info window
+    await infoWindow.open(map, SpatializedMarker);
+
+    // Attach event listeners only once when the info window is first opened
+    attachButtonEventListeners(title, engName);
   });
 }
 
