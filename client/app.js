@@ -261,98 +261,86 @@ function calculateAndDisplayRoute(destination) {
     } 
 }
 
-// function highlight(markerView, property) {
-//   markerView.content.classList.add("highlight");
-//   markerView.element.style.zIndex = 1;
-// }
-
-// function unhighlight(markerView, property) {
-//   markerView.content.classList.remove("highlight");
-//   markerView.element.style.zIndex = "";
-// }
-
-// function buildContent(property) {
-//   const content = document.createElement("div");
-//   content.classList.add("property");
-//   content.innerHTML = `
-//     <div class="icon">
-//         <i aria-hidden="true" class="fa fa-icon fa-${property.type}" title="${property.type}"></i>
-//         <span class="fa-sr-only">${property.type}</span>
-//     </div>
-//     <div class="details">
-//         <div class="price">${property.price}</div>
-//         <div class="address">${property.address}</div>
-//         <div class="features">
-//         <div>
-//             <i aria-hidden="true" class="fa fa-bed fa-lg bed" title="bedroom"></i>
-//             <span class="fa-sr-only">bedroom</span>
-//             <span>${property.bed}</span>
-//         </div>
-//         <div>
-//             <i aria-hidden="true" class="fa fa-bath fa-lg bath" title="bathroom"></i>
-//             <span class="fa-sr-only">bathroom</span>
-//             <span>${property.bath}</span>
-//         </div>
-//         <div>
-//             <i aria-hidden="true" class="fa fa-ruler fa-lg size" title="size"></i>
-//             <span class="fa-sr-only">size</span>
-//             <span>${property.size} ft<sup>2</sup></span>
-//         </div>
-//         </div>
-//     </div>
-//     `;
-//   return content;
-// }
-
-// const properties = [
-//   {
-//     address: "215 Emily St, MountainView, CA",
-//     description: "Single family house with modern design",
-//     price: "$ 3,889,000",
-//     type: "home",
-//     bed: 5,
-//     bath: 4.5,
-//     size: 300,
-//     position: {
-//       lat: 24.9877,
-//       lng: 121.5756,
-//     },
-//   },
-// ];
 
 let parameter1;
 let parameter2;
 let queryString;
 let url;
+let newWindow;
 // Function to handle button clicks
-function infoWindowButtonClicked(buttonNumber) {
-  // Handle button click events here
-  switch (buttonNumber) {
-    case 1:
-      // Code to run when Button 1 is clicked
-      parameter1 = 'Syue-Sih-1F-cube.glb'; // Replace 'some value' with the actual parameter value you want to pass
-      parameter2 = 'Syue-Sih-1F-nav.glb'; // Replace 42 with the actual parameter value you want to pass
-      queryString = `?param1=${encodeURIComponent(parameter1)}&param2=${encodeURIComponent(parameter2)}`;
-      url = `glb-model.html${queryString}`;
-      window.open(url, '_blank'); // Open the new page in a new tab/window
-      break;
-    case 2:
-      // Code to run when Button 2 is clicked
-      parameter1 = 'Syue-Sih-2F-cube.glb'; // Replace 'some value' with the actual parameter value you want to pass
-      parameter2 = 'Syue-Sih-2F-nav.glb'; // Replace 42 with the actual parameter value you want to pass
-      queryString = `?param1=${encodeURIComponent(parameter1)}&param2=${encodeURIComponent(parameter2)}`;
-      url = `glb-model.html${queryString}`;
-      window.open(url, '_blank'); // Open the new page in a new tab/window
-      break;
-    case 3:
-      // Code to run when Button 3 is clicked
-      break;
-    case 4:
-      // Code to run when Button 4 is clicked
-      break;
-    default:
-      break;
+function infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2) {
+  parameter1 = tabParameter1;
+  parameter2 = tabParameter2;
+  queryString = `?param1=${encodeURIComponent(parameter1)}&param2=${encodeURIComponent(parameter2)}`;
+  url = `glb-model.html${queryString}`;
+  newWindow = window.open(url, '_blank'); // Open the new page in a new tab/window
+  // Set the title of the new window once it's fully loaded
+  newWindow.onload = function() {
+    newWindow.document.title = tabTitle;
+  };
+}
+
+function createFloorPlanWindow(map, title, imgUrl, floorNumStart, floorNumEnd) {
+  const SpatializedMarker = new google.maps.Marker({
+    map,
+    title: title,
+    icon: {
+      url: imgUrl,
+      scaledSize: new google.maps.Size(36, 36),
+      /**
+       * The position at which to anchor an image in correspondence to the
+       * location of the marker on the map. By default, the anchor is located
+       * along the center point of the bottom of the image.
+       */
+      anchor: new google.maps.Point(18, 18),
+    },
+    position: {
+      lat: 24.9872,
+      lng: 121.57715,
+    },
+  });
+
+  let buttons = '';
+  for (let floor = floorNumStart; floor < floorNumEnd + 1; floor++) {
+    buttons += `<button class="info-window-button" data-button="${floor}">${floor}F</button>`;
   }
+
+  // Create the info window content
+  const infoWindowContent = `
+    <div>
+      <img src=${imgUrl} style="max-width: 200px; display: block; margin: 0 auto;">
+      <h3 style="text-align:center">${title}</h3>
+      <div class="info-window-buttons">
+        ${buttons}
+      </div>
+    </div>
+  `;
+
+
+  // Create the info window object
+  const infoWindow = new google.maps.InfoWindow({
+    content: infoWindowContent,
+  });
+
+  // Add a click event listener to the marker
+  SpatializedMarker.addListener('click', async function () {
+    // Open the info window when the marker is clicked
+    await infoWindow.open(map, SpatializedMarker);
+
+    // Attach click event handlers to the buttons inside the info window
+    const buttons = document.querySelectorAll('.info-window-button');
+    for (let i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener('click', function () {
+        const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
+        let tabTitle = '學思樓' + buttonNumber + '樓'
+        let tabParameter1 = 'Syue-Sih-' + buttonNumber + 'F-cube.glb';
+        let tabParameter2 = 'Syue-Sih-' + buttonNumber + 'F-nav.glb';
+        console.log(buttonNumber + "clicked!");
+        console.log(tabTitle);
+        infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2);
+      });
+    }
+  });
 }
 
 async function initMap() {    
@@ -370,88 +358,9 @@ async function initMap() {
   // Initialize the map with the mapOptions
   map = new google.maps.Map(mapDiv, mapOptions);
 
-  const spatializedMarker = new google.maps.Marker({
-    map,
-    title: '學思樓',
-    icon: {
-      url: 'https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg',
-      scaledSize: new google.maps.Size(36, 36),
-      /**
-       * The position at which to anchor an image in correspondence to the
-       * location of the marker on the map. By default, the anchor is located
-       * along the center point of the bottom of the image.
-       */
-      anchor: new google.maps.Point(18, 18),
-    },
-    position: {
-      lat: 24.9872,
-      lng: 121.57715,
-    },
-  });
+  createFloorPlanWindow(map, '學思樓', "https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg", 1, 4);
+  
 
-  // Create the info window content
-  const infoWindowContent = `
-    <div>
-      <img src="https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg" alt="Syue-Sih-Building.jpg" style="max-width: 200px; display: block; margin: 0 auto;">
-      <h3 style="text-align:center">學思樓</h3>
-      <div class="info-window-buttons">
-        <button class="info-window-button" data-button="1">1F</button>
-        <button class="info-window-button" data-button="2">2F</button>
-        <button class="info-window-button" data-button="3">3F</button>
-        <button class="info-window-button" data-button="4">4F</button>
-      </div>
-    </div>
-  `;
-
-
-  // Create the info window object
-  const infoWindow = new google.maps.InfoWindow({
-    content: infoWindowContent,
-  });
-
-
-
-  // Add a click event listener to the marker
-  spatializedMarker.addListener('click', async function () {
-    // Open the info window when the marker is clicked
-    await infoWindow.open(map, spatializedMarker);
-
-    // Attach click event handlers to the buttons inside the info window
-    const buttons = document.querySelectorAll('.info-window-button');
-    for (let i = 0; i < buttons.length; i++) {
-      buttons[i].addEventListener('click', function () {
-        const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
-        console.log(buttonNumber + "clicked!")
-        infoWindowButtonClicked(buttonNumber);
-      });
-    }
-  });
-
-
-  // // Create interactive markers
-  // // https://developers.google.com/maps/documentation/javascript/examples/advanced-markers-html
-  // for (const property of properties) {
-  //   const advancedMarkerView = new google.maps.marker.AdvancedMarkerView({
-  //     map,
-  //     content: buildContent(property),
-  //     position: property.position,
-  //     title: property.description,
-  //   });
-  //   const element = advancedMarkerView.element;
-  //   ["focus", "pointerenter"].forEach((event) => {
-  //     element.addEventListener(event, () => {
-  //       highlight(advancedMarkerView, property);
-  //     });
-  //   });
-  //   ["blur", "pointerleave"].forEach((event) => {
-  //     element.addEventListener(event, () => {
-  //       unhighlight(advancedMarkerView, property);
-  //     });
-  //   });
-  //   advancedMarkerView.addListener("click", (event) => {
-  //     unhighlight(advancedMarkerView, property);
-  //   });
-  // }
 
   // Attach a click event listener to the map object
   google.maps.event.addListener(map, 'click', function(event) {
@@ -484,10 +393,10 @@ async function initWebGLOverlayView () {
     camera = new THREE.PerspectiveCamera();
 
     // Add floor plan at specific latitude and longitude
-    const floorPlanLat = 24.9873; // Replace with your desired latitude
-    const floorPlanLng = 121.5754; // Replace with your desired longitude
-    const floorPlan = addFloorPlan(floorPlanLat, floorPlanLng, 'floor_plan.jpg');
-    scene.add(floorPlan);
+    // const floorPlanLat = 24.9873; // Replace with your desired latitude
+    // const floorPlanLng = 121.5754; // Replace with your desired longitude
+    // const floorPlan = addFloorPlan(floorPlanLat, floorPlanLng, 'floor_plan.jpg');
+    // scene.add(floorPlan);
 
     // const rectangleLat = 24.9873; // Replace with your desired latitude
     // const rectangleLng = 121.5754; // Replace with your desired longitude
@@ -606,15 +515,17 @@ async function initWebGLOverlayView () {
     planRouteButton.textContent = 'Plan Route';
 
     // Style the "Plan Route" button
-    const planRouteButtonRect = planRouteButton.getBoundingClientRect();
+    // const planRouteButtonRect = planRouteButton.getBoundingClientRect();
     
     // Calculate the top and left position for the suggestions container
-    const top = planRouteButtonRect.bottom + window.pageYOffset;
-    const left = planRouteButtonRect.left + window.pageXOffset;
+    // const top = planRouteButtonRect.bottom + window.pageYOffset;
+    // const left = planRouteButtonRect.left + window.pageXOffset;
 
-    planRouteButton.style.position = 'absolute';
-    planRouteButton.style.top = `${top + 10}px`;
-    planRouteButton.style.left = `${left + 250}px`;
+    planRouteButton.style.position = 'relative';
+    planRouteButton.style.top = '10px';
+    planRouteButton.style.left = `250px`;
+    // planRouteButton.style.top = `${top + 10}px`;
+    // planRouteButton.style.left = `${left + 250}px`;
 
     // Add event listener for the button click
     planRouteButton.addEventListener('click', function() {
