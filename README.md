@@ -24,3 +24,8 @@ This repo contains the project template and finished code for the Google Maps Pl
 ### 方法二
 1. 在地圖上任選一地標
 2. 點擊 Plan Route 按鈕，畫面應自動跳出路線規劃圖
+
+## 如何使用平面圖功能
+1. 點擊政大校區大樓旁之圖片
+2. 選擇想了解的樓層
+3. 彈跳出另一頁面，讓使用者自由在該樓層走動
