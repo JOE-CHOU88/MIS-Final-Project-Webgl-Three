@@ -280,7 +280,7 @@ function infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2) {
   };
 }
 
-function createFloorPlanWindow(map, title, imgUrl, floorNumStart, floorNumEnd) {
+function createFloorPlanWindow(map, lat, lng, title, engName, imgUrl, floorNumStart, floorNumEnd) {
   const SpatializedMarker = new google.maps.Marker({
     map,
     title: title,
@@ -295,8 +295,8 @@ function createFloorPlanWindow(map, title, imgUrl, floorNumStart, floorNumEnd) {
       anchor: new google.maps.Point(18, 18),
     },
     position: {
-      lat: 24.9872,
-      lng: 121.57715,
+      lat: lat,
+      lng: lng,
     },
   });
 
@@ -310,7 +310,7 @@ function createFloorPlanWindow(map, title, imgUrl, floorNumStart, floorNumEnd) {
     <div>
       <img src=${imgUrl} style="max-width: 200px; display: block; margin: 0 auto;">
       <h3 style="text-align:center">${title}</h3>
-      <div class="info-window-buttons">
+      <div class="info-window-buttons" id="button-container">
         ${buttons}
       </div>
     </div>
@@ -322,23 +322,39 @@ function createFloorPlanWindow(map, title, imgUrl, floorNumStart, floorNumEnd) {
     content: infoWindowContent,
   });
 
+
+  // Declare a variable to keep track of the info window state
+  let infoWindowOpen = false;
+  let isInfoWindowFirstOpen = true;
+
   // Add a click event listener to the marker
   SpatializedMarker.addListener('click', async function () {
-    // Open the info window when the marker is clicked
-    await infoWindow.open(map, SpatializedMarker);
+    // Check if the info window is already open
+    if (infoWindowOpen) {
+      // Close the info window when clicked again
+      infoWindow.close();
+      infoWindowOpen = false;
+    } else {
+      // Open the info window when the marker is clicked
+      await infoWindow.open(map, SpatializedMarker);
+      infoWindowOpen = true;
 
-    // Attach click event handlers to the buttons inside the info window
-    const buttons = document.querySelectorAll('.info-window-button');
-    for (let i = 0; i < buttons.length; i++) {
-      buttons[i].addEventListener('click', function () {
-        const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
-        let tabTitle = '學思樓' + buttonNumber + '樓'
-        let tabParameter1 = 'Syue-Sih-' + buttonNumber + 'F-cube.glb';
-        let tabParameter2 = 'Syue-Sih-' + buttonNumber + 'F-nav.glb';
-        console.log(buttonNumber + "clicked!");
-        console.log(tabTitle);
-        infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2);
-      });
+      if (isInfoWindowFirstOpen){
+        // Attach click event handlers to the buttons inside the info window
+        const buttons = document.querySelectorAll('.info-window-button');
+        for (let i = 0; i < buttons.length; i++) {
+          buttons[i].addEventListener('click', function () {
+            const buttonNumber = parseInt(buttons[i].getAttribute('data-button'));
+            let tabTitle = title + buttonNumber + '樓'
+            let tabParameter1 = engName + '-' + buttonNumber + 'F-cube.glb';
+            let tabParameter2 = engName + '-' + buttonNumber + 'F-nav.glb';
+            console.log(buttonNumber + "clicked!");
+            console.log(tabTitle);
+            infoWindowButtonClicked(tabTitle, tabParameter1, tabParameter2);
+          });
+        }
+      }
+      isInfoWindowFirstOpen = false;
     }
   });
 }
@@ -358,8 +374,14 @@ async function initMap() {
   // Initialize the map with the mapOptions
   map = new google.maps.Map(mapDiv, mapOptions);
 
-  createFloorPlanWindow(map, '學思樓', "https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg", 1, 4);
-  
+  createFloorPlanWindow(map, 24.987115, 121.57695, '學思樓', 'Syue-Sih', "https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg", 1, 4);
+  createFloorPlanWindow(map, 24.9872, 121.5765, '研究大樓', 'Research', "https://classroom.nccu.edu.tw/work/bding/06051521042103.jpg", 1, 9);
+  createFloorPlanWindow(map, 24.98656, 121.57655, '商學院', 'College-of-Commerce', "https://classroom.nccu.edu.tw/work/bding/06051521034602.jpg", 1, 9);
+  createFloorPlanWindow(map, 24.9868, 121.57688, '逸仙樓', 'Yi-Xian', "https://classroom.nccu.edu.tw/work/bding/01904032317591.jpg", 1, 7);
+  createFloorPlanWindow(map, 24.9862, 121.5751, '行政大樓', 'Administration', "https://lh3.googleusercontent.com/p/AF1QipOjNUeZCvP_ckYGg8BKWFW4Afeu7CS9iW4LnwYl=s1360-w1360-h1020", 2, 5);
+  createFloorPlanWindow(map, 24.98677, 121.57395, '大勇樓', 'Da-Yong', "https://classroom.nccu.edu.tw/work/bding/01905020929035.jpg", 1, 4);
+  createFloorPlanWindow(map, 24.9864, 121.57365, '綜合院館', 'General', "https://classroom.nccu.edu.tw/work/bding/06051521023603.jpg", 1, 6);
+  createFloorPlanWindow(map, 24.98833, 121.57888, '達賢圖書館', 'Syue-Sih', "https://dhl.lib.nccu.edu.tw/var/file/1/1001/randimg/mobileadv_43_8688974_62372.jpg", 2, 8);
 
 
   // Attach a click event listener to the map object
@@ -391,21 +413,6 @@ async function initWebGLOverlayView () {
   webGLOverlayView.onAdd = () => {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera();
-
-    // Add floor plan at specific latitude and longitude
-    // const floorPlanLat = 24.9873; // Replace with your desired latitude
-    // const floorPlanLng = 121.5754; // Replace with your desired longitude
-    // const floorPlan = addFloorPlan(floorPlanLat, floorPlanLng, 'floor_plan.jpg');
-    // scene.add(floorPlan);
-
-    // const rectangleLat = 24.9873; // Replace with your desired latitude
-    // const rectangleLng = 121.5754; // Replace with your desired longitude
-    // const width = 5; // Replace with the desired width
-    // const height = 3; // Replace with the desired height
-    // const color = 0xff0000; // Replace with the desired color in hexadecimal format
-
-    // const rectangle = addRectangle(rectangleLat, rectangleLng, width, height, color);
-    // scene.add(rectangle);
 
     // 將光源新增至場景中
     const ambientLight = new THREE.AmbientLight( 0xffffff, 0.75 );
@@ -540,48 +547,6 @@ async function initWebGLOverlayView () {
     // Append the button to the map container
     mapContainer.appendChild(planRouteButton);
 
-    // // Add landmarks
-    // const landmarkPositions = [
-    //   { lat: 24.9873, lng: 121.5754 },
-    //   // Add more landmark positions as needed
-    // ];
-
-    // const markerGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-    // const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-    // loader = new GLTFLoader();
-
-    // landmarkPositions.forEach((position) => {
-    //   const { lat, lng } = position;
-    //   console.log(position)
-    //   const position3D = convertLatLngToPosition(lat, lng); // Function to convert lat/lng to 3D position
-    //   console.log(position3D)
-
-    //   loader.load(
-    //     'pin.gltf',
-    //     (gltf) => {
-    //       const landmark = gltf.scene;
-    //       console.log(gltf.scene.scale)
-    //       landmark.position.copy(position3D);
-    //       scene.add(landmark);
-    //     },
-    //     undefined,
-    //     (error) => {
-    //       console.error('Error loading landmark model:', error);
-    //     }
-    //   );
-    // });
-
-    // loader = new GLTFLoader();
-    // const source = 'pin.gltf';
-    // loader.load(
-    //   source,
-    //   gltf => {
-    //     gltf.scene.scale.set(25,25,25);
-    //     gltf.scene.rotation.x = 180 * Math.PI/180;
-    //     scene.add(gltf.scene);
-    //   }
-    // );
   }
 
   webGLOverlayView.onContextRestored = ({gl}) => {

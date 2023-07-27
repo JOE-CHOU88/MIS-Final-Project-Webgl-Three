@@ -21,11 +21,18 @@ body,
 
 .info-window-buttons {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap; /* Wrap buttons within the button row */
   justify-content: center;
 }
 
 .info-window-button {
   margin: 5px;
   text-align: center;
+}
+
+#button-container {
+  display: flex;
+  flex-wrap: wrap; /* Wrap button rows within the container */
+  justify-content: center; /* Center the button rows horizontally */
+  align-items: flex-start; /* Align button rows to the top */
 }
