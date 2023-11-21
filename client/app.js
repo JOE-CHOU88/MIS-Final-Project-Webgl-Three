@@ -392,7 +392,7 @@ async function initMap() {
   createFloorPlanWindow(map, 24.987115, 121.57695, '學思樓', 'Syue-Sih', "https://classroom.nccu.edu.tw/work/bding/06051520352401.jpg", 1, 4);
   createFloorPlanWindow(map, 24.9872, 121.5765, '研究大樓', 'Research', "https://classroom.nccu.edu.tw/work/bding/06051521042103.jpg", 1, 9);
   createFloorPlanWindow(map, 24.98656, 121.57655, '商學院', 'College-of-Commerce', "https://classroom.nccu.edu.tw/work/bding/06051521034602.jpg", 1, 9);
-  createFloorPlanWindow(map, 24.9868, 121.57688, '逸仙樓', 'Yi-Xian', "https://classroom.nccu.edu.tw/work/bding/01904032317591.jpg", 1, 7);
+  createFloorPlanWindow(map, 24.9868, 121.57688, '逸仙樓', 'Yi-Xian', "https://classroom.nccu.edu.tw/work/bding/01904032317591.jpg", 1, 4);
   createFloorPlanWindow(map, 24.9862, 121.5751, '行政大樓', 'Administration', "https://lh3.googleusercontent.com/p/AF1QipOjNUeZCvP_ckYGg8BKWFW4Afeu7CS9iW4LnwYl=s1360-w1360-h1020", 2, 4);
   createFloorPlanWindow(map, 24.98677, 121.57395, '大勇樓', 'Da-Yong', "https://classroom.nccu.edu.tw/work/bding/01905020929035.jpg", 1, 4);
   createFloorPlanWindow(map, 24.9864, 121.57365, '綜合院館', 'General', "https://classroom.nccu.edu.tw/work/bding/06051521023603.jpg", 1, 11);
