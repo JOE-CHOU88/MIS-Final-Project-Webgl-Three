@@ -24,7 +24,7 @@ app.get('/api/key', (req, res) => {
 });
 
 // Serve static files for the client application
-app.use(express.static('client'));
+app.use(express.static('src'));
 
 // Start the server
 app.listen(port, () => {
