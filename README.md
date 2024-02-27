@@ -15,6 +15,8 @@ This repo contains the project template and finished code for the Google Maps Pl
 ![螢幕擷取畫面 (1310)](https://github.com/JOE-CHOU88/MIS-Final-Project-Webgl-Three/assets/62171839/d744a144-85b1-41ec-a64e-f771a393ac25)
 5. 以上操作需在有網路連線的狀況下執行。
 
+(2024/2/27 更新) 由於部屬需求，app.js 檔案中第 33 行 http://localhost:8080/api/key 改為 https://mis-final-project-webgl-three-backend1.onrender.com/api/key；server.js 檔案中第 12 行 http://localhost:8081 改為 https://mis-final-project-webgl-three-frontend.onrender.com。若要在本地端執行，請手動改回。
+
 
 ## 如何使用路線規劃功能
 ### 方法一
