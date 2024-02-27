@@ -20,7 +20,7 @@ const CONFIG = {
   mode: 'development',
 
   entry: {
-    app: './client/app.js'
+    app: './src/app.js'
   },
   devServer: {
     static: {
