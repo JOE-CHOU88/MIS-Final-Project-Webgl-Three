@@ -24,8 +24,9 @@ const CONFIG = {
   },
   devServer: {
     static: {
-      directory: path.join(__dirname, 'client'),
-    }
+      directory: path.join(__dirname, 'src'),
+    },
+    allowedHosts: 'https://mis-final-project-webgl-three-frontend.onrender.com/',
   },
   resolve: {
     fallback: {
