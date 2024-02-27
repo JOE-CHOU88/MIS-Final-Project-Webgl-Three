@@ -30,7 +30,7 @@ let destination;
 // Fetch the api key from the server side
 async function fetchApiKey() {
   try {
-    const response = await fetch('http://localhost:8080/api/key');
+    const response = await fetch('https://mis-final-project-webgl-three-backend1.onrender.com/api/key');
     const data = await response.json();
     const apiKey = data.apiKey;
     // Use the retrieved apiKey for your client-side operations
