@@ -6,7 +6,7 @@
         "use": "@vercel/static-build",
         "config": {
             "distDir": "client/build",
-            "buildCommand": "npm run build"
+            "buildCommand": "echo 'No build steps required for this project.'"
         }
       },
       {
